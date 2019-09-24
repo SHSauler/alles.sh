@@ -13,41 +13,51 @@ function help {
 # The different test stages. Your additions would be appreciated!
 runlist=(
 
-"TOPIC: Determine OS"
+"TOPIC: Determine OS & Environment"
 "uname -a" "head -1 /etc/issue" "head -4 /etc/os-release" 
-"cat /etc/debian_version" "cat /etc/lsb_release"
+"head -5 /etc/debian_version 2>/dev/null" "head -5 /etc/lsb_release"
 
 "TOPIC: Network"
 "hostname -f" "ip route show" "route" "grep -v -e '^$' -e '#' /etc/hosts"
-"lsof -i4 -n" "lsof -i6 -n"
+"lsof -i4 -n" "lsof -i6 -n" "ss -ltn 2>/dev/null"
 "arp -a" "ip neigh show"
 
 "TOPIC: Local users and groups"
 "id" "w" "last -10" "env" "cat /etc/passwd"
 "getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
+"find / -name .bash_history -exec ls -lah {} \; 2>/dev/null"
+
+"TOPIC: Security measures"
+"sestatus"
 
 "TOPIC: SSH"
-"find /root /home -type d -name .ssh -exec ls -lah {} + 2>/dev/null"
-"grep -v -e '^$' -e '#' /etc/ssh/sshd_config" "ls -lah /home/$USER/.ssh"
+"find /root /home -type d -name .ssh -exec ls -lah {} +"
+"grep -v -e '^$' -e '#' /etc/ssh/sshd_config 2>/dev/null" "ls -lah /home/$USER/.ssh"
 "find /home -type d ! -perm -g+r,u+r,o+r -prune -name .ssh"
 
 "TOPIC: Sudo"
 "sudo -ln" "grep -v -e '^$' -e '#' /etc/sudoers"
 
 "TOPIC: SUID and GUID"
-"find '/' -user root -perm -4000 -print 2>/dev/null"
-"find '/' -group root -perm -2000 -print 2>/dev/null"
+"find '/' -user root -perm -4000 -print"
+"find '/' -group root -perm -2000 -print"
 
 "TOPIC: Loose permissions"
-"find / -perm -222 -type d ; 2>/dev/null"
-"find / -perm -4000 -o -perm -2000 -print 2>/dev/null"
+"find / -perm -222 -type d"
+"find / -perm -4000 -o -perm -2000 -print"
 
 "TOPIC: Places of interest"
 "ls -lah /root" "ls -lah /opt/"
 
+"TOPIC: Packages"
+"zcat /var/log/apt/history.log.*.gz | cat - /var/log/apt/history.log | grep -Po '^Commandline: apt-get install (?!.*--reinstall)\K.*'"
+"zgrep -h ' install ' /var/log/dpkg.log* | sort | awk '{print $4}'"
+"rpm -qa --last | head -30"
+
 "TOPIC: Services"
 "ps -eo euser,ruser,suser,fuser,f,tty,label,s,args | grep -v ']$'"
 "crontab -l" "ls -lah /etc/cron*" "systemctl list-units"
+"ls -lahH /etc/init.d 2>/dev/null"
 
 )
 
@@ -73,15 +83,14 @@ fi
 
 he="\n${b}${t}======== "; eh=" ========${r}"; sc="\n# ${b}${g}"; fl="\n!! ${b}${d}"; re="${r}"
 
-function error_filter { if [[ $SUPPRESS_ERRORS -ne 1 ]]; then echo -e "$1"; fi
-}
+function error_filter { if [[ $SUPPRESS_ERRORS -ne 1 ]]; then echo -e "$1"; fi }
 
 function commandrunner {
 
   if [[ $1 == TOPIC* ]]; then echo -e "${he}${@}${eh}"; return; fi
   if [ ! -x "$(command -v ${1})" ]; then echo -e "${fl}${1}: No command or not executable${re}"; return; fi
   
-  output=$(eval ${*})
+  output=$(eval ${*} 2>&1)
   exitcode=$?
   if [[ exitcode -ne 0 ]]; then
     error_filter "${fl}${*}${re} (${exitcode}) $(echo -e ${output} | head -4)"
