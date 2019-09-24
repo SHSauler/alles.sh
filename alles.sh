@@ -27,7 +27,7 @@ runlist=(
 "getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
 
 "TOPIC: SSH"
-"find /root /home -type d -name .ssh -exec ls -lah {} +"
+"find /root /home -type d -name .ssh -exec ls -lah {} + 2>/dev/null"
 "grep -v -e '^$' -e '#' /etc/ssh/sshd_config" "ls -lah /home/$USER/.ssh"
 "find /home -type d ! -perm -g+r,u+r,o+r -prune -name .ssh"
 
@@ -35,20 +35,19 @@ runlist=(
 "sudo -ln" "grep -v -e '^$' -e '#' /etc/sudoers"
 
 "TOPIC: SUID and GUID"
-"find '/' -user root -perm -4000 -print ; 2>/dev/null"
-"find '/' -group root -perm -2000 -print ;  2>/dev/null"
+"find '/' -user root -perm -4000 -print 2>/dev/null"
+"find '/' -group root -perm -2000 -print 2>/dev/null"
 
 "TOPIC: Loose permissions"
 "find / -perm -222 -type d ; 2>/dev/null"
-"find / -perm -4000 -o -perm -2000 -print ; 2>/dev/null"
+"find / -perm -4000 -o -perm -2000 -print 2>/dev/null"
 
 "TOPIC: Places of interest"
 "ls -lah /root" "ls -lah /opt/"
 
 "TOPIC: Services"
 "ps -eo euser,ruser,suser,fuser,f,tty,label,s,args | grep -v ']$'"
-"crontab -l" "ls -lah /etc/cron*" "ps -aux 2>/dev/null" 
-"systemctl list-units"
+"crontab -l" "ls -lah /etc/cron*" "systemctl list-units"
 
 )
 
@@ -85,7 +84,7 @@ function commandrunner {
   output=$(eval ${*})
   exitcode=$?
   if [[ exitcode -ne 0 ]]; then
-    error_filter "${fl}${cmdarray[*]}${re} (${exitcode}) $(echo -e ${output} | head -4)"
+    error_filter "${fl}${*}${re} (${exitcode}) $(echo -e ${output} | head -4)"
   else
     echo -e "${sc}${@}${re}\n${output}"
   fi
