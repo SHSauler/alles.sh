@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -euxo pipefail
 
 function logo {
 	echo -e '       ____              __ \n ___ _/ / /__ ___   ___ / /  \n/ _ `/ / / -_|_-<_ (_-</ _ \ \n\_,_/_/_/\__/___(_)___/_//_/ \n'
@@ -6,22 +7,20 @@ function logo {
 
 function help {
   logo
-  echo -e "\nCommands:"
-  echo -e "\t -c No colors"
-  echo -e "\t -v Print errors\n"
+  echo -e "\nCommands:\n\t -c No colors\n\t -v Print errors\n\t -h Help\n"
 }
 
 # The different test stages. Your additions would be appreciated!
 runlist=(
 
 "TOPIC: Determine OS"
-"somefail"
 "uname -a" "head -1 /etc/issue" "head -4 /etc/os-release" 
 "cat /etc/debian_version" "cat /etc/lsb_release"
 
 "TOPIC: Network"
 "hostname -f" "ip route show" "route" "grep -v -e '^$' -e '#' /etc/hosts"
 "lsof -i4 -n" "lsof -i6 -n"
+"arp -a" "ip neigh show"
 
 "TOPIC: Local users and groups"
 "id" "w" "last -10" "env" "cat /etc/passwd"
@@ -33,8 +32,7 @@ runlist=(
 "find /home -type d ! -perm -g+r,u+r,o+r -prune -name .ssh"
 
 "TOPIC: Sudo"
-"sudo -l"
-"grep -v -e '^$' -e '#' /etc/sudoers"
+"sudo -l" "grep -v -e '^$' -e '#' /etc/sudoers"
 
 "TOPIC: SUID and GUID"
 "find '/' -user root -perm -4000 -print ; 2>/dev/null"
@@ -48,7 +46,7 @@ runlist=(
 "ls -lah /root" "ls -lah /opt/"
 
 "TOPIC: Services"
-"crontab -l" "ps -aux" 
+"crontab -l" "ls -lah /etc/cron*" "ps -aux 2>/dev/null" 
 "systemctl list-units"
 
 )
@@ -75,17 +73,12 @@ fi
 
 he="\n${b}${t}======== "; eh=" ========${r}"; sc="\n# ${b}${g}"; fl="\n!! ${b}${d}"; re="${r}"
 
-
-function error_filter {
-  if [[ $SUPPRESS_ERRORS -ne 1 ]]; then
-    echo -e "$1"
-  fi
+function error_filter { if [[ $SUPPRESS_ERRORS -ne 1 ]]; then echo -e "$1"; fi
 }
 
 function commandrunner {
 
   if [[ $1 == TOPIC* ]]; then echo -e "${he}${@}${eh}"; return; fi
-  
   if [ ! -x "$(command -v ${1})" ]; then echo -e "${fl}${1}: No command or not executable${re}"; return; fi
   
   output=$(eval ${*})
