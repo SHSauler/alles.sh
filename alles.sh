@@ -23,40 +23,43 @@ runlist=(
 "arp -a" "ip neigh show"
 
 "TOPIC: Local users and groups"
-"id" "w" "last -10" "env" "cat /etc/passwd"
+"id" "w" "last -10" "env | grep -v '^LS_COLORS.*$'" "cat /etc/passwd"
 "getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
 "find / -name .bash_history -exec ls -lah {} \; 2>/dev/null"
+"awk -F: '($2 != 'x') {print}' /etc/passwd"
+"awk -F: '($2 == '*') {print}' /etc/passwd"
+"grep -ve '^#.*' -e '^$' /etc/login.defs"
 
 "TOPIC: Security measures"
-"sestatus"
+"sestatus" "dmesg | grep '[NX|DX]*protection'"
+
+"/sbin/lsmod | grep 'ip_tables\|"
 
 "TOPIC: SSH"
 "find /root /home -type d -name .ssh -exec ls -lah {} +"
-"grep -v -e '^$' -e '#' /etc/ssh/sshd_config 2>/dev/null" "ls -lah /home/$USER/.ssh"
+"grep -ve '^#.*' -e '^$' /etc/ssh/sshd_config 2>/dev/null" "ls -lah /home/$USER/.ssh"
 "find /home -type d ! -perm -g+r,u+r,o+r -prune -name .ssh"
 
 "TOPIC: Sudo"
 "sudo -ln" "grep -v -e '^$' -e '#' /etc/sudoers"
 
-"TOPIC: SUID and GUID"
-"find '/' -user root -perm -4000 -print"
-"find '/' -group root -perm -2000 -print"
-
 "TOPIC: Loose permissions"
+"find / -user root -perm -4000 -print"
+"find / -group root -perm -2000 -print"
 "find / -perm -222 -type d"
-"find / -perm -4000 -o -perm -2000 -print"
 
 "TOPIC: Places of interest"
 "ls -lah /root" "ls -lah /opt/"
+"ls -lah /var/crash/"
 
 "TOPIC: Packages"
-"zcat /var/log/apt/history.log.*.gz | cat - /var/log/apt/history.log | grep -Po '^Commandline: apt-get install (?!.*--reinstall)\K.*'"
-"zgrep -h ' install ' /var/log/dpkg.log* | sort | awk '{print $4}'"
+"zcat /var/log/apt/history.log.*.gz | cat - /var/log/apt/history.log | grep -Po '^Commandline: apt-get install (?!.*--reinstall)\K.*' | head -30"
+"zgrep -h ' install ' /var/log/dpkg.log* | sort | awk '{print $4}' | head -30"
 "rpm -qa --last | head -30"
 
 "TOPIC: Services"
 "ps -eo euser,ruser,suser,fuser,f,tty,label,s,args | grep -v ']$'"
-"crontab -l" "ls -lah /etc/cron*" "systemctl list-units"
+"crontab -l" "ls -lah /etc/cron*" "systemctl list-units --type service --state running --no-legend --no-pager --full"
 "ls -lahH /etc/init.d 2>/dev/null"
 
 )
