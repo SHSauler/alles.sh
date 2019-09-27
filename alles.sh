@@ -14,17 +14,17 @@ function help {
 runlist=(
 
 "TOPIC: Determine OS & Environment"
+"env | grep -v '^LS_COLORS.*$'" "cat /etc/passwd"
 "uname -a" "head -1 /etc/issue" "head -4 /etc/os-release" 
 "head -5 /etc/debian_version 2>/dev/null" "head -5 /etc/lsb_release"
 
 "TOPIC: Network"
 "hostname -f" "ip route show" "route" "grep -v -e '^$' -e '#' /etc/hosts"
-"lsof -i4 -n" "lsof -i6 -n" "ss -ltn 2>/dev/null"
+"lsof -i4 -n" "lsof -i6 -n" "ss -ltn 2>/dev/null" "netstat -nat | grep LISTEN"
 "arp -a" "ip neigh show"
 
 "TOPIC: Local users and groups"
-"id" "w" "last -10" "env | grep -v '^LS_COLORS.*$'" "cat /etc/passwd"
-"getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
+"id" "w" "last -10" "getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
 "find / -name .bash_history -exec ls -lah {} \; 2>/dev/null"
 "awk -F: '($2 != 'x') {print}' /etc/passwd"
 "awk -F: '($2 == '*') {print}' /etc/passwd"
@@ -32,7 +32,6 @@ runlist=(
 
 "TOPIC: Security measures"
 "sestatus" "dmesg | grep '[NX|DX]*protection'"
-
 "/sbin/lsmod | grep 'ip_tables\|"
 
 "TOPIC: SSH"
@@ -49,6 +48,7 @@ runlist=(
 "find / -perm -222 -type d"
 
 "TOPIC: Places of interest"
+"cat /etc/fstab"
 "ls -lah /root" "ls -lah /opt/"
 "ls -lah /var/crash/"
 
@@ -60,7 +60,7 @@ runlist=(
 "TOPIC: Services"
 "ps -eo euser,ruser,suser,fuser,f,tty,label,s,args | grep -v ']$'"
 "crontab -l" "ls -lah /etc/cron*" "systemctl list-units --type service --state running --no-legend --no-pager --full"
-"ls -lahH /etc/init.d 2>/dev/null"
+"rcctl ls started" "ls -lahH /etc/init.d 2>/dev/null" "grep -v '^#' /etc/ftpusers"
 
 )
 
