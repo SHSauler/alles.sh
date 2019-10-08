@@ -23,6 +23,9 @@ runlist=(
 "lsof -i4 -n" "lsof -i6 -n" "ss -ltn 2>/dev/null" "netstat -nat | grep LISTEN"
 "arp -a" "ip neigh show"
 
+"TOPIC: File system & shares"
+"grep -Eve '^cgroup|^mqueue|^hugetlbfs|^fusectl' /proc/mounts"
+
 "TOPIC: Local users and groups"
 "id" "w" "last -10" "getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
 "find / -name .bash_history -exec ls -lah {} \; 2>/dev/null"
