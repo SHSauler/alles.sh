@@ -25,6 +25,7 @@ runlist=(
 
 "TOPIC: File system & shares"
 "grep -Eve '^cgroup|^mqueue|^hugetlbfs|^fusectl' /proc/mounts"
+"grep -v -e '^$' -e '#' /etc/fstab"
 
 "TOPIC: Local users and groups"
 "id" "w" "last -10" "getent passwd 0" "grep 'root\|adm\|wheel\|admin' /etc/group"
@@ -51,7 +52,6 @@ runlist=(
 "find / -perm -222 -type d"
 
 "TOPIC: Places of interest"
-"cat /etc/fstab"
 "ls -lah /root" "ls -lah /opt/"
 "ls -lah /var/crash/"
 
